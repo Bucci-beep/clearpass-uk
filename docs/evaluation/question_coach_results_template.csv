@@ -1,0 +1,1 @@
+run_id,arm,scenario_id,model_provider,model_id,model_settings,prompt_version,evidence_snapshot,response_path,evaluator,correct_supported_count,incorrect_count,verification_needed_count,missing_context_count,invalid_citation_count,unsupported_policy_cover_count,total_claims,review_status,notes

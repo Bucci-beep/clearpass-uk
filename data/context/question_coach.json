@@ -1,0 +1,152 @@
+{
+  "schema_version": "0.1",
+  "owner": "Fintech 2 (consumer experience)",
+  "date": "2026-10-20",
+  "status": "DRAFT for engineer. Research prototype. Not insurance advice.",
+  "purpose": "Stage 1 'Ask better'. Turn a rough question into a clearer, UK-focused prompt the consumer pastes into ChatGPT, Claude or Copilot themselves.",
+
+  "screen_copy": {
+    "title": "Ask better",
+    "intro": "Answer four quick questions. We will write a clearer question for you to paste into ChatGPT, Claude or Copilot. You can pick \"Not sure\" for anything you don't know.",
+    "rough_question_label": "What do you want to know? (optional, in your own words)",
+    "rough_question_note": "We show this next to the improved question so you can compare. We do not copy it into the improved question.",
+    "button": "Write my question",
+    "copy_button": "Copy question",
+    "privacy_note": "This question only contains the answers you picked. It does not include your name, address or policy number. You paste it into your AI assistant yourself.",
+    "next_step": "When your AI assistant answers, paste its answer into \"Check the answer\"."
+  },
+
+  "questions": [
+    {
+      "id": "Q1_uk",
+      "text": "Do you live in the UK?",
+      "type": "single_choice",
+      "options": [
+        {"value": "yes", "label": "Yes"},
+        {"value": "no", "label": "No"}
+      ],
+      "if_no": "ClearPass only covers UK home insurance at the moment, so we can't help with this one.",
+      "maps_to_fact": null
+    },
+    {
+      "id": "Q2_business",
+      "text": "What kind of business do you run from home?",
+      "type": "single_choice_with_other",
+      "options": [
+        {"value": "selling_online", "label": "Selling things online", "phrase": "selling things online"},
+        {"value": "making_crafts", "label": "Making and selling crafts or handmade goods", "phrase": "making and selling handmade goods"},
+        {"value": "services", "label": "Offering a service (for example tutoring, hair, repairs)", "phrase": "offering a service"},
+        {"value": "other", "label": "Something else (type a few words)", "phrase": "{other_text}"},
+        {"value": "not_sure", "label": "Not sure how to describe it", "phrase": null}
+      ],
+      "other_text_max_chars": 40,
+      "maps_to_fact": "business_activity_at_home"
+    },
+    {
+      "id": "Q3_stock",
+      "text": "Do you keep business stock at home? If so, where, and roughly how much is it worth?",
+      "type": "two_dropdowns",
+      "part_a": {
+        "id": "Q3a_location",
+        "label": "Where is it kept?",
+        "options": [
+          {"value": "main_house", "label": "Inside the house", "phrase": "inside my house"},
+          {"value": "attached_garage", "label": "In a garage attached to the house", "phrase": "in a garage attached to my house"},
+          {"value": "separate_outbuilding", "label": "In a separate shed, garage or outbuilding", "phrase": "in a separate shed or outbuilding"},
+          {"value": "no_stock", "label": "I don't keep stock at home", "phrase": null},
+          {"value": "not_sure", "label": "Not sure", "phrase": null}
+        ],
+        "maps_to_fact": "stock_storage_location"
+      },
+      "part_b": {
+        "id": "Q3b_value",
+        "label": "Roughly how much is it worth?",
+        "hidden_if": "Q3a_location == no_stock",
+        "options": [
+          {"value": "under_1k", "label": "Under £1,000", "phrase": "under £1,000"},
+          {"value": "1k_to_5k", "label": "£1,000 to £5,000", "phrase": "between £1,000 and £5,000"},
+          {"value": "5k_to_20k", "label": "£5,000 to £20,000", "phrase": "between £5,000 and £20,000"},
+          {"value": "over_20k", "label": "Over £20,000", "phrase": "over £20,000"},
+          {"value": "not_sure", "label": "Not sure", "phrase": null}
+        ],
+        "maps_to_fact": "stock_value_band",
+        "note": "Bands, not exact amounts: easier to answer and less personal data in the prompt."
+      }
+    },
+    {
+      "id": "Q4_policy",
+      "text": "What insurance do you have now?",
+      "type": "single_choice",
+      "options": [
+        {"value": "standard_contents", "label": "Home contents insurance"},
+        {"value": "contents_with_home_business_addon", "label": "Home contents insurance with an extra for working from home"},
+        {"value": "separate_business_policy", "label": "A separate business insurance policy"},
+        {"value": "no_insurance", "label": "No insurance at the moment"},
+        {"value": "not_sure", "label": "Not sure"}
+      ],
+      "maps_to_fact": "policy_type",
+      "engineer_note": "no_insurance is a coach-only value. Add it to the policy_type enum in coverage_context_rules.json, or map it to Missing or unclear."
+    }
+  ],
+
+  "prompt_template": {
+    "rule": "Build the prompt ONLY from these fixed sentences. Never insert the rough question. Leave a sentence out when its answer is Not sure, except where a Not sure sentence is listed.",
+    "opening": "I live in the UK and have a question about home insurance.",
+    "business": {
+      "known": "I run a small business from home, {business_phrase}.",
+      "not_sure": "I run a small business from home."
+    },
+    "stock": {
+      "location_and_value": "I keep business stock {location_phrase}, worth roughly {value_phrase}.",
+      "location_only": "I keep business stock {location_phrase}. I'm not sure what it is worth.",
+      "value_only": "I keep business stock at home, worth roughly {value_phrase}.",
+      "neither": "I keep some business stock at home.",
+      "no_stock": "I don't keep business stock at home."
+    },
+    "policy": {
+      "standard_contents": "I have home contents insurance.",
+      "contents_with_home_business_addon": "I have home contents insurance with an extra for working from home.",
+      "separate_business_policy": "I have a separate business insurance policy.",
+      "no_insurance": "I don't have insurance at the moment.",
+      "not_sure": "I'm not sure exactly what type of insurance I have."
+    },
+    "request_block": "Please help me understand:\n1. What I should look for in my own policy wording about business stock kept at home.\n2. Which parts of your answer are general UK information, and which depend on my specific insurer or policy.\n3. Anything you are not sure about. Please say so rather than guess.\n\nPlease answer for the UK only. Tell me which UK sources your answer is based on, with links I can check. Please do not recommend a specific insurer or product.",
+    "assembly_order": ["opening", "business", "stock", "policy", "blank_line", "request_block"]
+  },
+
+  "example": {
+    "answers": {"Q1_uk": "yes", "Q2_business": "making_crafts", "Q3a_location": "attached_garage", "Q3b_value": "1k_to_5k", "Q4_policy": "standard_contents"},
+    "rough_question": "is my stock covered by my house insurance?",
+    "coached_prompt": "I live in the UK and have a question about home insurance. I run a small business from home, making and selling handmade goods. I keep business stock in a garage attached to my house, worth roughly between £1,000 and £5,000. I have home contents insurance.\n\nPlease help me understand:\n1. What I should look for in my own policy wording about business stock kept at home.\n2. Which parts of your answer are general UK information, and which depend on my specific insurer or policy.\n3. Anything you are not sure about. Please say so rather than guess.\n\nPlease answer for the UK only. Tell me which UK sources your answer is based on, with links I can check. Please do not recommend a specific insurer or product."
+  },
+
+  "handoff_to_check_stage": {
+    "rule": "Coach answers carry forward as consumer facts. A picked answer = Stated. Not sure = Missing or unclear. They are pre-filled in the handover but stay UNTICKED.",
+    "facts": {
+      "Q2_business": "business_activity_at_home",
+      "Q3a_location": "stock_storage_location (no_stock -> stock_held_at_home = false)",
+      "Q3b_value": "stock_value_band",
+      "Q4_policy": "policy_type"
+    },
+    "missing_context_after_answer": {
+      "note": "The coach does NOT ask these. They appear after the check, as questions to ask the insurer or broker (from coverage_context_rules.json).",
+      "always_if_business": ["CR1 insurer told about the business", "CR2 what the policy wording says about stock, including any limit"],
+      "if_not_sure_in_coach": {"Q3b_value": "CR3", "Q3a_location": "CR4"},
+      "unless_confirmed_by_consumer": {"Q4_policy": "CR7 shows even when the policy type is Stated, because only Confirmed by consumer resolves it (see coverage_context_rules.json)"},
+      "if_answer_mentions_topic": ["CR5 business visitors", "CR6 business equipment"]
+    }
+  },
+
+  "why_this_is_information_not_advice": [
+    "The coach asks for facts only (where, what, roughly how much, what type of policy). It does not judge whether cover is enough (PERG 5.8.17: factual pre-purchase questions are information).",
+    "The coach never names or suggests an insurer, product or type of cover, and never ends in a product (PERG 5.8.4, 5.8.16).",
+    "The prompt asks the AI assistant not to recommend a product, and to separate general UK information from policy-specific points.",
+    "The rough question is not copied into the prompt, so a request like 'which insurer is cheapest' is never passed on."
+  ],
+
+  "known_limits": [
+    "A better prompt does not guarantee a better answer. Person D measures this (rough vs coached, same scenario).",
+    "Asking the AI for sources can produce made-up sources. That is why stage 2 checks claims against our own evidence file.",
+    "The prompt goes to the consumer's own AI provider when they paste it. ClearPass does not send it anywhere."
+  ]
+}

@@ -1,7 +1,7 @@
 """Provider-agnostic foundation contracts. No model-generated conclusions."""
 
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
@@ -11,13 +11,13 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class ClaimStatus(str, Enum):
+class ClaimStatus(StrEnum):
     SUPPORTED = "supported"
     CONTRADICTED = "contradicted"
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
-class ConsumerFactStatus(str, Enum):
+class ConsumerFactStatus(StrEnum):
     STATED = "stated"
     CONSUMER_CONFIRMED = "consumer_confirmed"
     MISSING_OR_UNCLEAR = "missing_or_unclear"
@@ -69,7 +69,10 @@ class VerificationDecision(StrictModel):
 
     @model_validator(mode="after")
     def citation_requirements(self) -> "VerificationDecision":
-        if self.status in {ClaimStatus.SUPPORTED, ClaimStatus.CONTRADICTED} and not self.evidence_refs:
+        if (
+            self.status in {ClaimStatus.SUPPORTED, ClaimStatus.CONTRADICTED}
+            and not self.evidence_refs
+        ):
             raise ValueError("Non-abstaining claims require passage-level evidence")
         return self
 

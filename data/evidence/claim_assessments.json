@@ -1,0 +1,14 @@
+[
+  {
+    "assessment_id": "CA-0001",
+    "canonical_claim": "Home insurance may not cover business stock kept at home.",
+    "expected_status": "supported",
+    "evidence_ids": [
+      "UK-HB-001"
+    ],
+    "justification": "GOV.UK states that home insurance may not cover a home business, including stock.",
+    "scope": "General UK guidance only. Does not establish coverage under Maya's individual policy.",
+    "reviewed_by": "SKimani",
+    "reviewed_on": "2026-10-20"
+  }
+]

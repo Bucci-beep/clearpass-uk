@@ -8,7 +8,9 @@ from clearpass.contracts.models import (
 )
 
 
-def abstain(claim_id: str, reason: str = "No verified decision is available") -> VerificationDecision:
+def abstain(
+    claim_id: str, reason: str = "No verified decision is available"
+) -> VerificationDecision:
     """Safe default. This does not make a claim about any UK policy."""
     return VerificationDecision(
         claim_id=claim_id, status=ClaimStatus.INSUFFICIENT_EVIDENCE, reasoning=reason
@@ -22,6 +24,8 @@ def preview_approved_facts(request: PassportRequest) -> PassportPreview:
     return PassportPreview(
         selected_facts=selected,
         excluded_field_ids=[
-            fact.field_id for fact in request.facts if fact.field_id not in request.approved_field_ids
+            fact.field_id
+            for fact in request.facts
+            if fact.field_id not in request.approved_field_ids
         ],
     )

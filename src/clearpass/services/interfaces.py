@@ -3,8 +3,8 @@
 from typing import Protocol
 
 from clearpass.contracts.models import (
-    ContextGap,
     ConsumerFact,
+    ContextGap,
     EvidenceRecord,
     InsuranceClaim,
     PassportPreview,
