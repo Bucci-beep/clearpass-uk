@@ -1,1 +1,222 @@
-[]
+{
+  "schema_version": "0.1",
+  "owner": "Fintech 2 (consumer journey and regulatory boundary)",
+  "date_checked": "2026-10-20",
+  "status": "DRAFT for team review. Research prototype. Not legal advice and not a compliance sign-off.",
+  "scope": "UK home insurance, person running a small business from home with stock at home",
+
+  "vocabulary": {
+    "fact_statuses": ["Stated", "Confirmed by consumer", "Missing or unclear"],
+    "fact_status_notes": "Stated = the consumer said it. Confirmed by consumer = the consumer says they checked it with their policy wording or insurer; ClearPass cannot verify this. Missing or unclear = not given or not sure. No status ever means 'verified by a public source'.",
+    "claim_topics": [
+      "business_stock_cover",
+      "business_activity_disclosure",
+      "business_equipment_cover",
+      "home_business_liability",
+      "policy_type_for_home_business"
+    ],
+    "consumer_fact_keys": [
+      "business_activity_at_home",
+      "insurer_told_about_business",
+      "stock_held_at_home",
+      "stock_cover_checked",
+      "stock_storage_location",
+      "stock_value_band",
+      "visitors_for_business",
+      "business_equipment_at_home",
+      "policy_type",
+      "insured_party"
+    ],
+    "enums": {
+      "stock_storage_location": ["main_house", "attached_garage", "separate_outbuilding", "not_sure"],
+      "stock_value_band": ["under_1k", "1k_to_5k", "5k_to_20k", "over_20k", "prefer_not_to_say"],
+      "policy_type": ["standard_contents", "contents_with_home_business_addon", "separate_business_policy", "not_sure"],
+      "insured_party": ["me_personally", "my_company", "not_sure"]
+    },
+    "enum_note": "Value bands are a suggested UI choice to avoid collecting exact figures. The team can change them."
+  },
+
+  "context_rules": [
+    {
+      "id": "CR1",
+      "priority": 1,
+      "question": "Has your home insurer been told about the business you run from home, and what did they say?",
+      "handover_line": "I would like to confirm whether my insurer has been told about the business I run from home.",
+      "why_it_matters": "When an insurer asks you questions, your answers need to be accurate and not misleading. Your insurer or broker is the one who can say whether the business matters for your policy.",
+      "fires_if": {
+        "claim_topics_any": ["business_activity_disclosure", "business_stock_cover", "policy_type_for_home_business"],
+        "consumer_facts_any": ["business_activity_at_home"]
+      },
+      "resolved_if": {"fact_key": "insurer_told_about_business", "status": "Confirmed by consumer"},
+      "maps_to_handover_fields": ["H_business_activity", "H_insurer_told", "Q_CR1"],
+      "sensitivity": "low",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [
+        {"name": "Consumer Insurance (Disclosure and Representations) Act 2012, s.2(2)", "url": "https://www.legislation.gov.uk/ukpga/2012/6/section/2", "use": "Consumer duty is to take reasonable care not to make a misrepresentation. This is NOT a duty to volunteer every fact.", "applies_only_to": "consumer insurance contracts (see s.1 and CR7)"}
+      ],
+      "needs_verification": ["Person B to confirm whether a public source says insurers ask about business use at home."]
+    },
+    {
+      "id": "CR2",
+      "priority": 2,
+      "question": "Does your policy wording, or your insurer, say anything about business stock or goods kept at home, including whether there is a limit?",
+      "handover_line": "I would like to confirm what my policy says about business stock kept at home, including any limit.",
+      "why_it_matters": "General guidance cannot tell you what your own policy says. The wording or your insurer can.",
+      "fires_if": {
+        "claim_topics_any": ["business_stock_cover"],
+        "consumer_facts_any": ["stock_held_at_home"]
+      },
+      "resolved_if": {"fact_key": "stock_cover_checked", "status": "Confirmed by consumer"},
+      "maps_to_handover_fields": ["H_stock_held", "Q_CR2"],
+      "sensitivity": "low",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [
+        {"name": "PERG 5.8.8 to 5.8.9 (information vs advice)", "url": "https://handbook.fca.org.uk/handbook/perg5/perg5s8", "use": "Output is a factual question, not a recommendation."}
+      ],
+      "needs_verification": ["Person B to supply a sourced proposition that cover for home business items varies between policies (the 'it depends' evidence this question rests on)."]
+    },
+    {
+      "id": "CR3",
+      "priority": 3,
+      "question": "Roughly how much stock do you keep at home at any one time? A band is enough.",
+      "handover_line": "I would like to confirm how my stock level fits with my policy. My rough stock value band is shown above if I chose to include it.",
+      "why_it_matters": "Limits and sums insured are about amounts, so having a rough figure ready makes the conversation easier.",
+      "fires_if": {
+        "claim_topics_any": ["business_stock_cover"],
+        "consumer_facts_any": ["stock_held_at_home"]
+      },
+      "resolved_if": {"fact_key": "stock_value_band", "status": "Stated"},
+      "maps_to_handover_fields": ["H_stock_value_band", "Q_CR3"],
+      "sensitivity": "medium (a financial figure about the consumer; default not shared; band not exact amount)",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [],
+      "needs_verification": ["Person B: any public source on stock limits in home policies is optional; the question does not depend on it."]
+    },
+    {
+      "id": "CR4",
+      "priority": 4,
+      "question": "Is the stock kept in the main house, an attached garage or a separate outbuilding?",
+      "handover_line": "I would like to confirm whether where I keep my stock (main house, attached garage or outbuilding) makes a difference to my policy.",
+      "why_it_matters": "Where items are kept is a simple fact you can have ready if you are asked.",
+      "fires_if": {
+        "claim_topics_any": ["business_stock_cover"],
+        "consumer_facts_any": ["stock_held_at_home"]
+      },
+      "resolved_if": {"fact_key": "stock_storage_location", "status": "Stated"},
+      "maps_to_handover_fields": ["H_stock_location", "Q_CR4"],
+      "sensitivity": "low. Home security details are deliberately NOT collected.",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [],
+      "needs_verification": ["Person B: optional source that location can matter. Do not state that it does until sourced."]
+    },
+    {
+      "id": "CR5",
+      "priority": 5,
+      "question": "Do customers, couriers, staff or other business visitors come to your home?",
+      "handover_line": "I would like to confirm whether business visitors to my home are relevant to my policy.",
+      "why_it_matters": "This is a separate topic from cover for your stock, so it is worth asking about separately.",
+      "fires_if": {
+        "claim_topics_any": ["home_business_liability"],
+        "consumer_facts_any": ["visitors_for_business"]
+      },
+      "resolved_if": {"fact_key": "visitors_for_business", "status": "Stated"},
+      "maps_to_handover_fields": ["H_visitors", "Q_CR5"],
+      "sensitivity": "low",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [],
+      "needs_verification": ["Person B: optional. Keep as a question unless a public source supports a statement."]
+    },
+    {
+      "id": "CR6",
+      "priority": 6,
+      "question": "Do you keep business equipment at home, for example a laptop, printer or packaging machine?",
+      "handover_line": "I would like to confirm how my business equipment at home is treated under my policy.",
+      "why_it_matters": "Equipment is a different item from stock, so it can have its own answer.",
+      "fires_if": {
+        "claim_topics_any": ["business_equipment_cover"],
+        "consumer_facts_any": ["business_equipment_at_home"]
+      },
+      "resolved_if": {"fact_key": "business_equipment_at_home", "status": "Stated"},
+      "maps_to_handover_fields": ["H_equipment", "Q_CR6"],
+      "sensitivity": "low",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [],
+      "needs_verification": ["Person B: optional."]
+    },
+    {
+      "id": "CR7",
+      "priority": 7,
+      "question": "Is your current policy a standard home contents policy, one with a home-business add-on, or a separate business policy? And is it in your own name or a company's?",
+      "handover_line": "I would like to confirm what type of policy I hold and who is named on it, given I run a business from home.",
+      "why_it_matters": "The type of policy and who is named on it affect what your insurer needs to ask. The 2012 Act's definition of a consumer contract turns on whether the contract is wholly or mainly for non-business purposes, so a home with business use can be a grey area. Your insurer or broker is the one to say.",
+      "fires_if": {
+        "claim_topics_any": ["policy_type_for_home_business", "business_stock_cover"],
+        "consumer_facts_any": ["business_activity_at_home"]
+      },
+      "resolved_if": {"fact_key": "policy_type", "status": "Confirmed by consumer"},
+      "maps_to_handover_fields": ["H_policy_type", "H_insured_party", "Q_CR7"],
+      "sensitivity": "low",
+      "wording_checks": {"asserts_coverage": false, "recommends_product": false, "asserts_disclosure_duty": false},
+      "source_basis": [
+        {"name": "Consumer Insurance (Disclosure and Representations) Act 2012, s.1", "url": "https://www.legislation.gov.uk/ukpga/2012/6/section/1", "use": "Defines a consumer insurance contract as one an individual enters wholly or mainly for purposes unrelated to their trade, business or profession."}
+      ],
+      "needs_verification": ["Team: do NOT state which legal regime applies to a mixed-use home. Keep as a question. If a public source is wanted, Person B to find one."]
+    }
+  ],
+
+  "prohibited_output_rules": {
+    "applies_to": "Any text ClearPass writes itself (verdict wording, questions, passport). It does NOT apply to (a) verbatim passages quoted from a public source, shown in quotation marks with a source name, or (b) the AI claim being checked, inserted into the {claim} slot of a verdict template. Scan the template text with those slots left empty, otherwise ClearPass blocks its own correction of a wrong claim (found in testing on 20 Oct 2026 with 'You must tell your insurer about absolutely everything'). Slot (b) must still be shown as a quotation, never as ClearPass's own words.",
+    "important_limit": "These patterns are a safety net, not the main control. The main control is that the passport is built from a fixed template with enumerated slots. Regex cannot catch every paraphrase. Fail closed: if a pattern matches, block and regenerate from the template.",
+    "flags": "i",
+    "patterns": [
+      {"id": "P1_recommend_purchase", "pattern": "\\b(you should|you ought to|you need to|i recommend|we recommend|i suggest you|best option for you)\\b[^.]{0,50}\\b(buy|take out|choose|switch|get|go with|purchase|add|upgrade)\\b", "reason": "Recommends a course of action on buying cover (opinion, not information)."},
+      {"id": "P2a_you_are_covered", "pattern": "(?<!whether )(?<!if )\\b(you are|you're|you aren't|you are not|you're not) (fully |automatically |definitely )?(covered|insured|protected|excluded)\\b", "reason": "Asserts coverage for a person whose policy we have not seen."},
+      {"id": "P2b_your_policy_covers", "pattern": "(?<!whether )(?<!if )\\byour (home |contents )?(policy|insurance) (covers|excludes|includes|will pay|won't pay|does not cover|doesn't cover|does cover)\\b", "reason": "Asserts what a specific policy covers."},
+      {"id": "P3_disclosure_duty", "pattern": "\\b(you must|you have to|you are required to|you're required to|legally required to|obliged to)\\b[^.]{0,40}\\b(tell|disclose|declare|inform|volunteer)\\b", "reason": "States a blanket disclosure duty. The 2012 Act s.2(2) is a duty to take reasonable care not to misrepresent."},
+      {"id": "P4_non_disclosure_reassurance", "pattern": "\\b(no need to|don't need to|do not need to|not necessary to|need not)\\b[^.]{0,40}\\b(tell|disclose|declare|inform|mention)\\b", "reason": "Tells a consumer they do not need to tell the insurer something."},
+      {"id": "P5_guarantee", "pattern": "\\b(guarantee[ds]?|definitely|certainly|without doubt|100 ?%|always covered|never covered)\\b", "reason": "Overconfident or guaranteed language."},
+      {"id": "P6_regulatory_claim", "pattern": "\\b(fca[- ](approved|authorised|compliant|certified)|we are (authorised|regulated))\\b", "reason": "Claims regulatory status or approval we do not have."},
+      {"id": "P7_suitability_judgement", "pattern": "\\b(suitable for you|right (policy|cover|insurer) for you|best (policy|cover|insurer|deal|option)|cheapest|most suitable|ideal for you|(enough|adequate|sufficient|right) for you)\\b", "reason": "Judges suitability or ranks products."},
+      {"id": "P8_dictates_answers", "pattern": "\\b(put|answer|tick|select|write|enter)\\s+[\"'“]?(yes|no)[\"'”]?\\s+(for|to|on|in)\\b", "reason": "Tells the consumer how to answer an insurer's question or form (PERG 5.15.4 arranging risk)."}
+    ],
+    "named_entity_check": {
+      "rule": "Output must not name any insurer, broker or comparison site as an option. Allowed only inside a quoted source title (for example the name of a scheme or guidance publisher).",
+      "starter_blocklist_not_exhaustive": ["Aviva", "Admiral", "Direct Line", "LV=", "AXA", "Hiscox", "Simply Business", "Compare the Market", "MoneySuperMarket", "GoCompare", "Confused.com", "Zurich", "Allianz", "Churchill"]
+    }
+  },
+
+  "allowed_templates": {
+    "verdict_supported": "Claim: \"{claim}\". Result: Supported by evidence within the sources we checked. Source: {source_name}, passage: \"{short_passage}\". This is general guidance, not a check of your policy.",
+    "verdict_contradicted": "Claim: \"{claim}\". Result: Contradicted by evidence within the sources we checked. Source: {source_name}, passage: \"{short_passage}\". This is general guidance, not a check of your policy.",
+    "verdict_insufficient": "Claim: \"{claim}\". Result: Insufficient evidence. The sources we checked do not settle this. Your policy wording or your insurer can confirm.",
+    "consumer_fact_line": "You said: {fact}. This is your own statement and has not been checked.",
+    "question_line": "Question to ask: {question}",
+    "footer": "This is a preparation tool for questions. It does not say what any policy covers and it is not insurance advice."
+  },
+
+  "self_test": {
+    "note": "Fintech 2 smoke tests only. Person D's red-team cases are the independent test set and must be written without looking at this list.",
+    "must_block": [
+      "You should take out a business insurance policy for your stock.",
+      "I recommend Hiscox for your candle business.",
+      "Your contents policy covers business stock in the garage.",
+      "You are covered for stock in an attached garage.",
+      "You must tell your insurer about every business item.",
+      "There is no need to tell your insurer about the business.",
+      "This is guaranteed to be accepted.",
+      "This is the best policy for you.",
+      "Our summary is FCA approved.",
+      "Your policy does not cover business stock."
+    ],
+    "must_allow": [
+      "Public guidance cannot show whether your policy covers business stock. Your policy wording or insurer can confirm.",
+      "The AI assistant said ordinary contents insurance automatically covers business stock. The sources we checked do not support that as a general rule.",
+      "Question to ask: Does your policy wording say anything about business stock kept at home, including any limit?",
+      "You said: I keep stock in the garage. This is your own statement and has not been checked.",
+      "Insufficient evidence. The sources we checked do not settle this. Your insurer can confirm.",
+      "I would like to confirm whether my insurer has been told about the business I run from home.",
+      "This is a preparation tool for questions. It does not say what any policy covers and it is not insurance advice.",
+      "When an insurer asks you a question, take reasonable care that your answer is accurate."
+    ]
+  }
+}

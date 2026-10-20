@@ -22,3 +22,7 @@ private_data/
 .DS_Store
 .idea/
 .vscode/
+
+# Local Streamlit backups
+*.before_fast_upgrade
+*.before_stage2
